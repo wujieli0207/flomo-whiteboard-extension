@@ -1,8 +1,15 @@
 @import '@radix-ui/themes/styles.css';
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;&display=swap');
+@import url('tldraw/tldraw.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'Inter';
+}
 
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -19,10 +26,3 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 } */
-
-.shadow-root-container {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-}
