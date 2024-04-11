@@ -80,17 +80,26 @@ export default defineContentScript({
       },
     })
 
-    // // 固定在右侧
-    // app.shadowHost.style.position = 'fixed'
-    // app.shadowHost.style.top = '0'
-    // app.shadowHost.style.right = '0'
-    // app.shadowHost.style.height = '100%'
-    // app.shadowHost.style.width = `${whiteBoardWidth}px`
-    // app.shadowHost.style.backgroundColor = '#fff'
-
     app.mount()
 
     setTimeout(() => {
+      // === 获取 flomo 样式加载到 shadowDOM 中 ===
+      const styleLinkList = Array.from(document.styleSheets)
+        .map((sheet) => sheet.href)
+        .filter(Boolean)
+
+      if (app.shadow.querySelector('head')) {
+        styleLinkList.forEach((link) => {
+          if (link) {
+            const linkElement = document.createElement('link')
+            linkElement.rel = 'stylesheet'
+            linkElement.href = link
+            // @ts-ignore
+            app.shadow.querySelector('head').appendChild(linkElement)
+          }
+        })
+      }
+
       // === flomo 卡片拖动效果 ===
       const memos = document.getElementsByClassName('memos')[0]
       console.log('memos: ', memos)
@@ -98,7 +107,6 @@ export default defineContentScript({
       if (memos) {
         // 所有卡片
         const memoEls = document.getElementsByClassName('memo')
-        console.log('memoEls: ', memoEls)
 
         for (let i = 0; i < memoEls.length; i++) {
           const memoEl = memoEls[i]
@@ -107,15 +115,14 @@ export default defineContentScript({
           Sortable.create(memoEl, {
             ghostClass: 'sortable-ghost',
             onEnd: (event) => {
-              console.log('event: ', event)
-              console.log('eventhmlt: ', event.from.style.width)
               const htmlStr = event.from.innerHTML
-              console.log('htmlStr: ', htmlStr)
               // @ts-ignore
               window.tldrawEditor.createShape({
                 id: 'shape:' + Date.now(),
                 type: 'MemoShape',
                 props: {
+                  w: event.from.clientWidth,
+                  h: event.from.clientHeight,
                   contentHTML: htmlStr,
                 },
               })
