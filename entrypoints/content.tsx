@@ -10,8 +10,11 @@ export default defineContentScript({
   cssInjectionMode: 'ui',
 
   async main(ctx) {
-    let flomoAppWidth = 'calc(50% - 10px)'
-    let whiteBoardWidth = 'calc(50% - 10px)'
+    const initScreenLeft = (await storage.getItem('local:screenLeft')) ?? '50'
+    const initScreenRight = (await storage.getItem('local:screenRight')) ?? '50'
+
+    let flomoAppWidth = `calc(${initScreenLeft}% - 10px)`
+    let whiteBoardWidth = `calc(${initScreenRight}% - 10px)`
 
     const styleTag = document.createElement('style')
     // 设置分隔条样式
@@ -54,24 +57,24 @@ export default defineContentScript({
 
     app.mount()
 
+    // 控制 flomo 侧边栏折叠和展开
+    handleFlomoSidebar(Number(initScreenLeft))
+
     Split(['#app', app.shadowHost], {
-      onDragEnd: (size) => {
+      sizes: [Number(initScreenLeft), Number(initScreenRight)],
+      onDragEnd: async (size) => {
         const [screenLeft, screenRight] = size
 
         // 控制 flomo 侧边栏折叠和展开
-        const flomoSidebar = document.querySelector(
-          '.el-aside.left.aside-container'
-        )
-        if (screenLeft < 40) {
-          flomoSidebar?.classList.remove('show')
-          flomoSidebar?.classList.add('hide')
-        } else {
-          flomoSidebar?.classList.remove('hide')
-          flomoSidebar?.classList.add('show')
-        }
+        handleFlomoSidebar(screenLeft)
 
         flomoAppWidth = `calc(${screenLeft}% - 10px)`
         whiteBoardWidth = `calc(${screenRight}% - 10px)`
+
+        // 持久化比例
+        await storage.setItem('local:screenLeft', screenLeft)
+        await storage.setItem('local:screenRight', screenRight)
+
         if (app.shadow.getElementById('whiteboard')) {
           // @ts-ignore
           app.shadow.getElementById('whiteboard').style.width = whiteBoardWidth
@@ -135,3 +138,18 @@ export default defineContentScript({
     }, 2000)
   },
 })
+
+/**
+ * @description 控制 flomo 侧边栏折叠和展开
+ */
+function handleFlomoSidebar(screenLeft: number) {
+  // 控制 flomo 侧边栏折叠和展开
+  const flomoSidebar = document.querySelector('.el-aside.left.aside-container')
+  if (screenLeft < 40) {
+    flomoSidebar?.classList.remove('show')
+    flomoSidebar?.classList.add('hide')
+  } else {
+    flomoSidebar?.classList.remove('hide')
+    flomoSidebar?.classList.add('show')
+  }
+}
