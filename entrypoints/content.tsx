@@ -1,65 +1,37 @@
 import './popup/style.css'
 import ReactDOM from 'react-dom/client'
+// @ts-ignore
 import Sortable from 'sortablejs'
+import Split from 'split.js'
 import App from './popup/App'
-import Splitter from './popup/Splitter'
 
 export default defineContentScript({
   matches: ['<all_urls>'],
   cssInjectionMode: 'ui',
 
   async main(ctx) {
-    let whiteBoardWidth = '800'
+    let flomoAppWidth = 'calc(50% - 10px)'
+    let whiteBoardWidth = 'calc(50% - 10px)'
 
-    // === 当前主页宽度 ===
-    // 创建一个style标签
     const styleTag = document.createElement('style')
-
-    // 设置CSS规则，将页面宽度设置为80%
+    // 设置分隔条样式
     styleTag.innerHTML = `
-      body {
-        width: calc(100% - ${whiteBoardWidth}px - 2px) !important;
+      .gutter {
+        background-color: #eee;
+        background-repeat: no-repeat;
+        background-position: 50%;
+        z-index: 99999;
+      } 
+
+      .gutter.gutter-horizontal {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+        cursor: col-resize;
       }
     `
 
-    // 将style标签添加到页面的<head>中
     document.head.appendChild(styleTag)
 
-    // === 分隔条 ===
-
-    const splitter = await createShadowRootUi(ctx, {
-      name: 'flomo-whiteboard-splitter',
-      position: 'inline',
-      onMount: (container) => {
-        // Container is a body, and React warns when creating a root on the body, so create a wrapper div
-        const app = document.createElement('div')
-        container.append(app)
-
-        // Create a root on the UI container and render a component
-        const root = ReactDOM.createRoot(app)
-        root.render(<Splitter />)
-        return root
-      },
-      onRemove: (root) => {
-        root?.unmount()
-      },
-    })
-
-    // app.className = 'splitter' // 添加一个类以便在CSS中定位
-    splitter.shadowHost.style.position = 'fixed'
-    splitter.shadowHost.style.top = '0'
-    splitter.shadowHost.style.right = `calc(${whiteBoardWidth}px + 2px)`
-    splitter.shadowHost.style.height = '100%'
-    splitter.shadowHost.style.width = '2px'
-    splitter.shadowHost.style.backgroundColor = 'gray' // 分隔条的颜色
-    splitter.shadowHost.style.cursor = 'col-resize' // 鼠标光标的样式
-
-    // 分隔条监听事件
-    splitter.shadowHost.addEventListener('mousedown', (event) => {
-      console.log('event: ', event)
-    })
-
-    splitter.mount()
+    document.body.style.display = 'flex'
 
     // === 主页面 ===
     const app = await createShadowRootUi(ctx, {
@@ -82,6 +54,31 @@ export default defineContentScript({
 
     app.mount()
 
+    Split(['#app', app.shadowHost], {
+      onDragEnd: (size) => {
+        const [screenLeft, screenRight] = size
+
+        // 控制 flomo 侧边栏折叠和展开
+        const flomoSidebar = document.querySelector(
+          '.el-aside.left.aside-container'
+        )
+        if (screenLeft < 40) {
+          flomoSidebar?.classList.remove('show')
+          flomoSidebar?.classList.add('hide')
+        } else {
+          flomoSidebar?.classList.remove('hide')
+          flomoSidebar?.classList.add('show')
+        }
+
+        flomoAppWidth = `calc(${screenLeft}% - 10px)`
+        whiteBoardWidth = `calc(${screenRight}% - 10px)`
+        if (app.shadow.getElementById('whiteboard')) {
+          // @ts-ignore
+          app.shadow.getElementById('whiteboard').style.width = whiteBoardWidth
+        }
+      },
+    })
+
     setTimeout(() => {
       // === 获取 flomo 样式加载到 shadowDOM 中 ===
       const styleLinkList = Array.from(document.styleSheets)
@@ -100,9 +97,14 @@ export default defineContentScript({
         })
       }
 
+      // === 设置白板宽度 ===
+      if (app.shadow.getElementById('whiteboard')) {
+        // @ts-ignore
+        app.shadow.getElementById('whiteboard').style.width = whiteBoardWidth
+      }
+
       // === flomo 卡片拖动效果 ===
       const memos = document.getElementsByClassName('memos')[0]
-      console.log('memos: ', memos)
 
       if (memos) {
         // 所有卡片
@@ -114,7 +116,7 @@ export default defineContentScript({
           // 拖动事件
           Sortable.create(memoEl, {
             ghostClass: 'sortable-ghost',
-            onEnd: (event) => {
+            onEnd: (event: any) => {
               const htmlStr = event.from.innerHTML
               // @ts-ignore
               window.tldrawEditor.createShape({

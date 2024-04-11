@@ -19,6 +19,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sortablejs": "^1.15.2",
+    "split.js": "^1.6.5",
     "tldraw": "^2.0.2"
   },
   "devDependencies": {

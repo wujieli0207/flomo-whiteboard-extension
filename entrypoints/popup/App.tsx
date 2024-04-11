@@ -6,20 +6,18 @@ import { MyshapeTool } from './tldraw/shapeTool'
 import { MyshapeUtil } from './tldraw/shapeUtil'
 import { components, uiOverrides } from './tldraw/uiOverrides'
 
-interface IProps {
-  width: string
-}
-
 // [1]
 const customShapeUtils = [MyshapeUtil]
 const customTools = [MyshapeTool]
 
-const App: FC<IProps> = ({ width }) => {
+const App = () => {
   return (
     <div
+      id="whiteboard"
       className="h-full"
-      style={{ position: 'fixed', top: 0, right: 0, width: `${width}px` }}
+      style={{ position: 'fixed', top: 0, right: 0 }}
     >
+      {/* , width: `${width}` */}
       <Tldraw
         onMount={(editor) => {
           // @ts-ignore
