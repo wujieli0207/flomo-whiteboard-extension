@@ -44,7 +44,7 @@ export default defineContentScript({
 
         // Create a root on the UI container and render a component
         const root = ReactDOM.createRoot(app)
-        root.render(<App width={whiteBoardWidth} />)
+        root.render(<App />)
         return root
       },
       onRemove: (root) => {
