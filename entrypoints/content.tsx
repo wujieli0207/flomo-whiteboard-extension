@@ -1,5 +1,6 @@
 import './popup/style.css'
 import ReactDOM from 'react-dom/client'
+import Sortable from 'sortablejs'
 import App from './popup/App'
 import Splitter from './popup/Splitter'
 
@@ -79,14 +80,49 @@ export default defineContentScript({
       },
     })
 
-    // 固定在右侧
-    app.shadowHost.style.position = 'fixed'
-    app.shadowHost.style.top = '0'
-    app.shadowHost.style.right = '0'
-    app.shadowHost.style.height = '100%'
-    app.shadowHost.style.width = `${whiteBoardWidth}px`
-    app.shadowHost.style.backgroundColor = '#fff'
+    // // 固定在右侧
+    // app.shadowHost.style.position = 'fixed'
+    // app.shadowHost.style.top = '0'
+    // app.shadowHost.style.right = '0'
+    // app.shadowHost.style.height = '100%'
+    // app.shadowHost.style.width = `${whiteBoardWidth}px`
+    // app.shadowHost.style.backgroundColor = '#fff'
 
     app.mount()
+
+    setTimeout(() => {
+      // === flomo 卡片拖动效果 ===
+      const memos = document.getElementsByClassName('memos')[0]
+      console.log('memos: ', memos)
+
+      if (memos) {
+        // 所有卡片
+        const memoEls = document.getElementsByClassName('memo')
+        console.log('memoEls: ', memoEls)
+
+        for (let i = 0; i < memoEls.length; i++) {
+          const memoEl = memoEls[i]
+
+          // 拖动事件
+          Sortable.create(memoEl, {
+            ghostClass: 'sortable-ghost',
+            onEnd: (event) => {
+              console.log('event: ', event)
+              console.log('eventhmlt: ', event.from.style.width)
+              const htmlStr = event.from.innerHTML
+              console.log('htmlStr: ', htmlStr)
+              // @ts-ignore
+              window.tldrawEditor.createShape({
+                id: 'shape:' + Date.now(),
+                type: 'MemoShape',
+                props: {
+                  contentHTML: htmlStr,
+                },
+              })
+            },
+          })
+        }
+      }
+    }, 2000)
   },
 })
