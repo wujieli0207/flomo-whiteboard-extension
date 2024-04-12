@@ -121,10 +121,26 @@ export default defineContentScript({
             ghostClass: 'sortable-ghost',
             onEnd: (event: any) => {
               const htmlStr = event.from.innerHTML
+
+              // 获取鼠标释放时的屏幕坐标
+              const mouseX = event.originalEvent.clientX
+              const mouseY = event.originalEvent.clientY
+
+              // @ts-ignore
+              const canvasContainer = app.shadow.querySelector('.tl-container')
+              const containerRect = canvasContainer!.getBoundingClientRect()
+
+              // 转换屏幕坐标到画布坐标
+              const x = mouseX - containerRect.left
+              const y = mouseY - containerRect.top
+              console.log('x，y: ', x, y)
+
               // @ts-ignore
               window.tldrawEditor.createShape({
                 id: 'shape:' + Date.now(),
                 type: 'MemoShape',
+                x,
+                y,
                 props: {
                   w: event.from.clientWidth,
                   h: event.from.clientHeight,
