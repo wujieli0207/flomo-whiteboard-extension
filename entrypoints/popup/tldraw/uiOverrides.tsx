@@ -1,6 +1,8 @@
 import {
+  DefaultActionsMenu,
   DefaultKeyboardShortcutsDialog,
   DefaultKeyboardShortcutsDialogContent,
+  DefaultToolbar,
   TLComponents,
   TLUiOverrides,
   TldrawUiMenuItem,
@@ -11,27 +13,27 @@ import {
 // There's a guide at the bottom of this file!
 
 export const uiOverrides: TLUiOverrides = {
+  // 自定义 toolbar 按钮
   tools(editor, tools) {
-    // Create a tool item in the ui's context.
-    tools.MemoShape = {
-      id: 'MemoShape',
-      icon: 'color',
-      label: 'MemoShape',
-      kbd: 'c',
-      onSelect: () => {
-        editor.setCurrentTool('MemoShape')
-      },
-    }
     return tools
   },
   toolbar(_app, toolbar, { tools }) {
-    // Add the tool item from the context to the toolbar.
-    toolbar.splice(4, 0, toolbarItem(tools.MemoShape))
-    return toolbar
+    // toolbar 仅展示必要的内容
+    const result = toolbar.filter((item) =>
+      // 选择，拖动页面，连线，便签，图片
+      ['select', 'hand', 'arrow', 'note', 'asset'].includes(item.id)
+    )
+    return result
   },
 }
 
 export const components: TLComponents = {
+  ActionsMenu: () => {
+    return <DefaultActionsMenu />
+  },
+  Toolbar: () => {
+    return <DefaultToolbar />
+  },
   KeyboardShortcutsDialog: (props) => {
     const tools = useTools()
     return (

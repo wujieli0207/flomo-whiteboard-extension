@@ -26,11 +26,11 @@ const App = () => {
         // Pass in the array of custom shape classes
         shapeUtils={customShapeUtils}
         // Pass in the array of custom tools
-        tools={customTools}
+        // tools={customTools}
         // Pass in any overrides to the user interface 底部操作按钮，暂时不用
-        // overrides={uiOverrides}
+        overrides={uiOverrides}
         // pass in the new Keyboard Shortcuts component 快捷键，暂时也不用
-        // components={components}
+        components={components}
       />
     </div>
   )
