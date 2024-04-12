@@ -17,8 +17,8 @@ const App = () => {
       className="h-full"
       style={{ position: 'fixed', top: 0, right: 0 }}
     >
-      {/* , width: `${width}` */}
       <Tldraw
+        persistenceKey="flomo-whiteboard"
         onMount={(editor) => {
           // @ts-ignore
           window.tldrawEditor = editor
