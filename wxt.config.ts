@@ -8,5 +8,12 @@ export default defineConfig({
   }),
   manifest: {
     permissions: ['storage', 'tabs'],
+    content_scripts: [
+      {
+        matches: ['https://v.flomoapp.com/*'],
+        js: ['content-scripts/content.js'],
+      },
+    ],
+    host_permissions: ['https://v.flomoapp.com/*'],
   },
 })

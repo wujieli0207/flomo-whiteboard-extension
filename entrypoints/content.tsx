@@ -6,7 +6,7 @@ import Split from 'split.js'
 import App from './popup/App'
 
 export default defineContentScript({
-  matches: ['<all_urls>'],
+  matches: ['https://v.flomoapp.com/*'],
   cssInjectionMode: 'ui',
 
   async main(ctx) {
