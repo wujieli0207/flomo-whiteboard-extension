@@ -1,21 +1,22 @@
-import { browser } from 'wxt/browser'
+function openNewTab(url: string) {
+  browser.tabs.create({
+    url: url,
+  })
+}
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id })
 
-  // browser.storage.onChanged.addListener(function (changes, namespace) {
-  //   console.log('changes: ', changes)
-  //   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-  //     console.log('oldValue: ', oldValue)
-  //     console.log('newValue: ', newValue)
-  //     if (key === 'isOpenBoard') {
-  //       // // 发送消息到 content script
-  //       // chrome.tabs.query({}, function (tabs) {
-  //       //   for (let tab of tabs) {
-  //       //     chrome.tabs.sendMessage(tab.id, { isOpenBoard: newValue })
-  //       //   }
-  //       // })
-  //     }
-  //   }
-  // })
+  // 转发来自 popup 的消息
+  browser.runtime.onMessage.addListener(function (requset) {
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      const activeTab = tabs[0]
+      const tid = activeTab?.id ?? -1
+
+      if (activeTab && tid > 0) {
+        browser.tabs.sendMessage(tid, requset)
+        openNewTab(browser.runtime.getURL('/whiteboard.html'))
+      }
+    })
+  })
 })

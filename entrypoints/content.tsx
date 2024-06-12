@@ -1,12 +1,18 @@
-import './popup/style.css'
+import './style.css'
 import ReactDOM from 'react-dom/client'
 import App from './popup/App'
+import { IMessage } from './popup/types'
 
 export default defineContentScript({
   matches: ['https://v.flomoapp.com/*'],
   cssInjectionMode: 'ui',
 
   async main(ctx) {
+    browser.runtime.onMessage.addListener(async function (message: IMessage) {
+      const { isOpenWhiteboard } = message
+      console.log('isOpenWhiteboard: ', isOpenWhiteboard)
+    })
+
     // === 主页面 ===
     const app = await createShadowRootUi(ctx, {
       name: 'flomo-whiteboard',
