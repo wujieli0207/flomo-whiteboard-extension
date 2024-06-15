@@ -1,9 +1,13 @@
 import '../style.css'
 
+import { Canvas } from '../components/JsonCanvas'
+import mockCanvasContent from './mock-content.json'
+import { CanvasContent } from '../components/JsonCanvas/types'
+
 const App = () => {
   return (
     <div className="w-full h-full">
-      <button>Whiteboard</button>
+      <Canvas content={mockCanvasContent as CanvasContent} />
     </div>
   )
 }
