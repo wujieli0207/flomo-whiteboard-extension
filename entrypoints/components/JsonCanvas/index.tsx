@@ -1,73 +1,120 @@
-import { select, zoom } from 'd3'
+// entrypoints/components/JsonCanvas/index.tsx
 import { useEffect, useRef, useState } from 'react'
 import { CanvasNode } from './components/CanvasNode'
 import { Edges } from './components/Edges'
 import './index.css'
-import { CanvasContent } from './types'
+import { CanvasContent, Node } from './types'
+// @ts-ignore
+import Sortable from 'sortablejs'
 
 export interface CanvasProps {
   content: CanvasContent
 }
 
 export function Canvas({ content }: CanvasProps) {
-  const [scale, setScale] = useState(1)
-  const [translateX, setTranslateX] = useState(0)
-  const [translateY, setTranslateY] = useState(0)
-  const containerRef = useRef(null)
-  const nodesRef = useRef(content.initialNodes)
+  const [nodes, setNodes] = useState(content.initialNodes)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
 
-  //Mount zoom
   useEffect(() => {
-    const container = select(containerRef.current)
+    setNodes(content.initialNodes)
 
-    const zoomFn = zoom().on('zoom', (event) => {
-      setScale(event.transform.k)
-      setTranslateX(event.transform.x)
-      setTranslateY(event.transform.y)
-    })
+    setTimeout(() => {
+      if (canvasRef.current) {
+        // 初始化 SortableJS
+        Sortable.create(canvasRef.current, {
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          onStart: (event: any) => {
+            console.log('Drag start', event)
+            console.log('content.initialNodes: ', content.initialNodes)
+            // 确保在拖动开始时，节点的初始位置被正确记录
+            const node = content.initialNodes.find(
+              (n) => n.id === event.item.id
+            )
+            if (node) {
+              node.startX = node.x
+              node.startY = node.y
+            }
+          },
+          onMove: (event: any) => {
+            console.log('Drag move', event)
+            // 在拖动过程中实时更新位置
+            const node = nodes.find((n) => n.id === event.dragged.id)
+            if (node) {
+              const canvasRect = canvasRef.current?.getBoundingClientRect()
+              const draggedRect = event.dragged.getBoundingClientRect()
 
-    container.call(zoomFn)
-  }, [])
+              if (canvasRect) {
+                // 计算相对于 Canvas 的新位置
+                const newX = draggedRect.left - canvasRect.left
+                const newY = draggedRect.top - canvasRect.top
+
+                node.x = newX
+                node.y = newY
+
+                // 更新 nodes 数组
+                setNodes([...nodes])
+              }
+            }
+          },
+          onEnd: (event: any) => {
+            console.log('Drag end', event)
+            // 确保在拖动结束时，节点的新位置被保存
+            const nodeId = event.item.id
+            const newX = event.item.offsetLeft
+            const newY = event.item.offsetTop
+
+            updateNodePosition(nodeId, newX, newY)
+          },
+        })
+      }
+    }, 1 * 1000)
+  }, [content.initialNodes, canvasRef])
+
+  const updateNodePosition = (id: string, x: number, y: number) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === id
+          ? {
+              ...node,
+              x,
+              y,
+            }
+          : node
+      )
+    )
+  }
 
   return (
-    <>
+    <div
+      ref={containerRef}
+      className="json-canvas"
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        width: '100%',
+        height: '100%',
+      }}
+    >
       <div
-        ref={containerRef}
-        className="json-canvas"
+        ref={canvasRef}
         style={{
-          backgroundSize: `calc(${scale} * 20px) calc(${scale} * 20px)`,
-          backgroundPosition: `calc(${scale} - 19px) calc(${scale} - 19px)`,
-          backgroundImage: `radial-gradient(#ddd calc(${scale}*0.5px + 0.5px), transparent 0)`,
+          position: 'relative',
+          width: '100%',
+          height: '100%',
         }}
-      />
-
-      <Edges
-        scale={scale}
-        content={content}
-        translateX={translateX}
-        translateY={translateY}
-      />
-
-      {nodesRef.current !== null &&
-        nodesRef.current?.map((node) => (
-          <CanvasNode
-            key={node.id}
-            node={node}
-            scale={scale}
-            translateX={translateX}
-            translateY={translateY}
-          />
+      >
+        {nodes.map((node) => (
+          <CanvasNode key={node.id} node={node} />
         ))}
-
-      {/* 操作按钮 */}
-      <div id="controls">
-        <div id="zoom-controls">
-          <button id="toggle-output">Toggle output</button>
-          <button id="zoom-out">Zoom out</button>
-          <button id="zoom-in">Zoom in</button>
-          <button id="zoom-reset">Reset</button>
-        </div>
       </div>
-    </>
+      <Edges
+        scale={1} // 固定比例为 1
+        content={content}
+        translateX={0} // 固定值为 0
+        translateY={0} // 固定值为 0
+      />
+    </div>
   )
 }

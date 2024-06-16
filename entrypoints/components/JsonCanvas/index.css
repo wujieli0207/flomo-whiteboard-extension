@@ -43,6 +43,12 @@ p {
   height: 100%;
   width: 100%;
   min-height: 100vh;
+  background-size: 20px 20px; /* 恢复背景网格样式 */
+  background-position: 19px 19px; /* 恢复背景网格样式 */
+  background-image: radial-gradient(
+    #ddd 0.5px,
+    transparent 0
+  ); /* 恢复背景网格样式 */
 }
 
 .node {
@@ -81,6 +87,17 @@ p {
 
 .node:hover {
   cursor: grab;
+}
+
+/* === SortableJS specific styles === */
+.sortable-ghost {
+  opacity: 0.5;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sortable-chosen {
+  cursor: grabbing;
 }
 
 /* === Canvas controls === */

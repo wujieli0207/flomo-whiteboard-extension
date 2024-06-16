@@ -7,13 +7,8 @@ export default defineConfig({
     plugins: [react()],
   }),
   manifest: {
-    permissions: ['storage', 'tabs'],
-    content_scripts: [
-      {
-        matches: ['https://v.flomoapp.com/*'],
-        js: ['content-scripts/content.js'],
-      },
-    ],
-    host_permissions: ['https://v.flomoapp.com/*'],
+    permissions: ['tabs', 'storage'],
+    name: 'Flomo 白板',
+    description: 'Flomo 白板工具',
   },
 })

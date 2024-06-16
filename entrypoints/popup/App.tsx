@@ -1,8 +1,10 @@
-import '../style.css'
+import './App.css'
+import { browser } from 'wxt/browser'
+import { Button, Form } from 'antd'
 import { IMessage } from './types'
 
-const App = () => {
-  const handleOpenWhiteboard = async () => {
+export default function App() {
+  const handleExport = async () => {
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       const activeTab = tabs[0]
       const tid = activeTab.id ?? -1
@@ -11,16 +13,30 @@ const App = () => {
         const message: IMessage = {
           isOpenWhiteboard: true,
         }
-        browser.runtime.sendMessage(message)
+        browser.runtime.sendMessage({ message })
       }
     })
   }
 
   return (
-    <div className="flex flex-col items-center h-48 p-2 w-36">
-      <button onClick={handleOpenWhiteboard}>开启白板</button>
-    </div>
+    <>
+      <Form
+        name="basic"
+        labelCol={{ span: 12 }}
+        wrapperCol={{ span: 12 }}
+        style={{ maxWidth: 600 }}
+        initialValues={{ remember: true }}
+        autoComplete="off"
+        labelAlign="left"
+      >
+        <Form.Item>
+          <>
+            <Button type="primary" className="button" onClick={handleExport}>
+              打开 Flomo 白板
+            </Button>
+          </>
+        </Form.Item>
+      </Form>
+    </>
   )
 }
-
-export default App
