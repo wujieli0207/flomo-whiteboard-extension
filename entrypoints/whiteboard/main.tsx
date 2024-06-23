@@ -1,4 +1,5 @@
 import '../style.css'
+import 'tldraw/tldraw.css'
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
